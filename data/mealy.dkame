@@ -1,0 +1,13 @@
+DKAME
+4
+3
+A: B A A
+B: B C B
+C: C C D
+D: D D D
+A
+3
+A: 1 0 0
+B: 0 2 0
+C: 0 0 3
+D: 0 0 0
