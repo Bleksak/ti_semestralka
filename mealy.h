@@ -1,3 +1,5 @@
 #pragma once
 
-void parse_mealy(char* str);
+#include "automaton.h"
+
+Automaton* parse_mealy(char* str);

@@ -5,56 +5,35 @@
 
 #include "parser.h"
 #include "mealy.h"
+#include "transition.h"
 
-static size_t get_state_count(char* str) {
+static size_t get_out_characters(char* str, char ascii[]) {
+    // TODO: mozna potrebujem hashset namisto ascii tabulky
     size_t count = 0;
-    size_t len = strlen(STRING_TABLE[XML_STATE_END]);
+    size_t len = strlen(STRING_TABLE[XML_TRANSOUT]);
 
-    while((str = strstr(str, STRING_TABLE[XML_STATE_END]))) {
-        count += 1;
-        str += len;
-    }
-
-    return count;
-}
-
-static size_t get_in_count(char* str) {
-    // TODO: mozna potrebujem hashset
-    bool ascii[256] = {0};
-    size_t count = 0;
-    size_t len = strlen(STRING_TABLE[XML_READ]);
-
-    while((str = strstr(str, STRING_TABLE[XML_READ]))) {
+    while((str = strstr(str, STRING_TABLE[XML_TRANSOUT]))) {
         str += len;
         if(!ascii[*str]) {
-            ascii[*str] = true;
             count += 1;
+            ascii[*str] = count;
         }
     }
 
     return count;
 }
 
-static char get_initial_state(char* str) {
-    size_t len = strlen(STRING_TABLE[XML_STATE]);
-    char* end = strstr(str, STRING_TABLE[XML_INITIAL]);
+Automaton* parse_mealy(char* str) {
+    char in[256] = {0};
+    char out[256] = {0};
 
-    while(end >= str) {
-        if(strncmp(end, STRING_TABLE[XML_STATE], len) == 0) {
-            char* id_start = end + strlen(STRING_TABLE[XML_INITIAL]) + 1;
-            char* endptr;
-
-            return strtoul(id_start, &endptr, 10) + 'A';
-        }
-        end -= 1;
-    }
-
-    return 'A';
-}
-
-void parse_mealy(char* str) {
     size_t state_count = get_state_count(str);
-    size_t in_count = get_in_count(str);
+    size_t in_count = get_in_characters(str, in);
+    size_t out_count = get_out_characters(str, out);
     char initial_state = get_initial_state(str);
-    
+
+    Transition* transitions;
+    size_t transition_count = get_transitions(str, &transitions);
+
+    return automaton(TYPE_MEALY, OUT_DKAME, state_count, in_count, out_count, transition_count, transitions, initial_state, in, out);
 }

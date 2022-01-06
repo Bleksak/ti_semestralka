@@ -1,3 +1,6 @@
 #pragma once
 
-void parse_moore(char* str);
+#include "automaton.h"
+#include "parser.h"
+
+Automaton* parse_moore(char* str);
