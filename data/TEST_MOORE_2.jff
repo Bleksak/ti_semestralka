@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<structure>
+	<type>mealy</type>
+	<automaton>
+		<state id="0" name="A">
+			<initial/>
+		</state>
+		<state id="1" name="B">
+		</state>
+		<state id="2" name="C">
+		</state>
+		<transition>
+			<from>0</from>
+			<to>0</to>
+			<read>a</read>
+			<transout>1</transout>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>1</to>
+			<read>b</read>
+			<transout>2</transout>
+		</transition>
+		<transition>
+			<from>1</from>
+			<to>2</to>
+			<read>a</read>
+			<transout>1</transout>
+		</transition>
+		<transition>
+			<from>1</from>
+			<to>1</to>
+			<read>b</read>
+			<transout>2</transout>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>2</to>
+			<read>a</read>
+			<transout>3</transout>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>2</to>
+			<read>b</read>
+			<transout>3</transout>
+		</transition>
+	</automaton>
+</structure>

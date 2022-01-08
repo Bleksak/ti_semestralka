@@ -5,35 +5,25 @@
 #include <string.h>
 
 #include "automaton.h"
-#include "dkame.h"
-#include "dkamo.h"
+#include "dk.h"
 #include "mealy.h"
 #include "moore.h"
 #include "parser.h"
+#include "string_table.h"
 
 #define DKAME "DKAME"
 #define DKAMO "DKAMO"
+#define MEALY "mealy"
+#define MOORE "moore"
 
-typedef Automaton* (*parser)(char*);
+typedef ErrorCode (*parser)(char*, Automaton**);
 
-const parser parsers[] = {
+static const parser parsers[] = {
 	NULL,
 	parse_mealy,
 	parse_moore,
-};
-
-const char* STRING_TABLE[] = {
-	"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>",
-	"<type>",
-	"</state>",
-	"<read>",
-	"<initial/>",
-	"<state id=\"",
-	"<transition>",
-	"<from>",
-	"<to>",
-	"<transout>",
-	"<output>",
+	parse_dkame,
+	parse_dkamo,
 };
 
 static void closefile(FILE** fp) {
@@ -42,17 +32,22 @@ static void closefile(FILE** fp) {
 	}
 }
 
-static bool is_xml(char* str) {
-	return *str == '<';
-}
+static ErrorCode readfile(FILE* fp, char** str) {
+	fseek(fp, 0, SEEK_END);
+	long file_len = ftell(fp);
+	rewind(fp);
 
-static char* readlines(FILE* fp, size_t file_len) {
-	char* str = calloc(file_len + 1, sizeof(char));
-	char* start = str;
+	*str = calloc(file_len + 1, sizeof(char));
 
-	size_t count = 0;
+	if (!*str) {
+		return ERR_OUT_OF_MEMORY;
+	}
 
-	while (fgets(start, file_len - count, fp)) {
+	char* start = *str;
+
+	long count = 0;
+
+	while (fgets(start, file_len - count + 1, fp) && file_len - count > 0) {
 		size_t move_back = 0;
 
 		while (isspace(start[move_back])) {
@@ -63,24 +58,38 @@ static char* readlines(FILE* fp, size_t file_len) {
 
 		memmove(start, start + move_back, read);
 
-		if (start[read - 1] == '\n') {
-			read -= 1;
-		}
-
 		count += read;
 		start += read;
 	}
 
-	str = realloc(str, count + 1);
+	// shrink to fit
+	// this will never fail, but valgrind is being a crybaby about it
+	void* old = *str;
+	*str = realloc(*str, count + 1);
 
-	return str;
+	if (!*str) {
+		free(old);
+		return ERR_OUT_OF_MEMORY;
+	}
+
+	return OK;
+}
+
+static bool is_xml(const char* str) {
+	return *str == '<';
 }
 
 static AutomatonType get_type(const char* str) {
-	char* s = strstr(str, STRING_TABLE[XML_TYPE]);
+	if (is_xml(str)) {
+		char* s = strstr(str, STRING_TABLE[XML_TYPE]) + strlen(STRING_TABLE[XML_TYPE]);
 
-	if (s != NULL) {
-		return automaton_get_type(s + strlen(STRING_TABLE[XML_TYPE]));
+		if (strncmp(s, MEALY, sizeof(MEALY) - 1) == 0) {
+			return TYPE_MEALY;
+		}
+
+		if (strncmp(s, MOORE, sizeof(MOORE) - 1) == 0) {
+			return TYPE_MOORE;
+		}
 	}
 
 	if (strncmp(str, DKAME, sizeof(DKAME) - 1) == 0) {
@@ -94,49 +103,26 @@ static AutomatonType get_type(const char* str) {
 	return TYPE_NONE;
 }
 
-Automaton* parse_xml(FILE* fp) {
-	fseek(fp, 0, SEEK_END);
-	size_t len = (size_t)ftell(fp);
-	rewind(fp);
+ErrorCode parse(const char* filename, Automaton** automaton) {
+	__attribute__((cleanup(closefile))) FILE* fp = fopen(filename, "r");
+	if (!fp) {
+		return BAD_FILE;
+	}
 
-	char* str = readlines(fp, len);
+	char* str;
+
+	ErrorCode code = readfile(fp, &str);
+
+	if (code) {
+		return code;
+	}
 
 	AutomatonType type = get_type(str);
 
-	if (type == TYPE_NONE) {
-		// TODO: asdfasdfsdf
-		return NULL;
-	}
+	code = parsers[type](str, automaton);
 
-	return parsers[type](str);
-}
-
-Automaton* parse_dk(FILE* fp, AutomatonType type) {
-	rewind(fp);
-	switch (type) {
-		case TYPE_DKAME: {
-			return parse_dkame(fp);
-		} break;
-
-		case TYPE_DKAMO: {
-			return parse_dkamo(fp);
-		} break;
-	}
-}
-
-Automaton* parse(const char* filename) {
-	__attribute__((cleanup(closefile))) FILE* fp = fopen(filename, "r");
-	if (!fp) {
-		return NULL;
-	}
-
-	char buffer[512];
-	fgets(buffer, sizeof(buffer), fp);
-	if (is_xml(buffer)) {
-		return parse_xml(fp);
-	}
-
-	return parse_dk(fp, get_type(buffer));
+	free(str);
+	return code;
 }
 
 size_t get_state_count(char* str) {
@@ -158,8 +144,8 @@ size_t get_in_characters(char* str, char ascii[]) {
 
 	while ((str = strstr(str, STRING_TABLE[XML_READ]))) {
 		str += len;
-		if (!ascii[*str]) {
-			ascii[*str] = count + 'a';
+		if (!ascii[(size_t)*str]) {
+			ascii[(size_t)*str] = (char)count + 'a';
 			count += 1;
 		}
 	}
@@ -176,7 +162,7 @@ char get_initial_state(char* str) {
 			char* id_start = end + strlen(STRING_TABLE[XML_INITIAL]) + 1;
 			char* endptr;
 
-			return strtoul(id_start, &endptr, 10) + 'A';
+			return (char)strtoul(id_start, &endptr, 10) + 'A';
 		}
 		end -= 1;
 	}
@@ -198,14 +184,18 @@ size_t get_transition_count(char* str) {
 	return count;
 }
 
-// TODO: Return error code
-size_t get_transitions(char* str, Transition** _transitions) {
-	size_t count = get_transition_count(str);
-	*_transitions = calloc(count, sizeof(Transition));
+ErrorCode get_transitions(char* str, size_t* count, Transition** _transitions) {
+	*count = get_transition_count(str);
+
+	if(*count == 0) {
+		return OK;
+	}
+
+	*_transitions = calloc(*count, sizeof(Transition));
 
 	Transition* transitions = *_transitions;
 	if (!transitions) {
-		return 0;
+		return ERR_OUT_OF_MEMORY;
 	}
 
 	const char* transition = STRING_TABLE[XML_TRANSITION];
@@ -217,8 +207,14 @@ size_t get_transitions(char* str, Transition** _transitions) {
 	size_t transout_strlen = strlen(STRING_TABLE[XML_TRANSOUT]);
 	size_t read_strlen = strlen(STRING_TABLE[XML_READ]);
 
-	for (size_t i = 0; i < count; ++i) {
+	for (size_t i = 0; i < *count; ++i) {
 		last_transition = strstr(last_transition, transition);
+
+		if(!last_transition) {
+			free(transitions);
+			return BAD_FILE;
+		}
+
 		char* dummy;
 
 		char* fromstr = strstr(last_transition, STRING_TABLE[XML_FROM]);
@@ -227,18 +223,19 @@ size_t get_transitions(char* str, Transition** _transitions) {
 		char* readstr = strstr(last_transition, STRING_TABLE[XML_READ]);
 
 		if (!fromstr || !tostr || !transoutstr || !readstr) {
-			// TODO: RETURN ERROR
-			return 0;
+			free(transitions);
+			return BAD_FILE;
 		}
 
-		transitions[i].from = strtoul(fromstr + from_strlen, &dummy, 10);
-		transitions[i].to = strtoul(tostr + to_strlen, &dummy, 10);
-
+		transitions[i].from = (char)strtoul(fromstr + from_strlen, &dummy, 10);
+		transitions[i].to = (char)strtoul(tostr + to_strlen, &dummy, 10);
 		transitions[i].read = *(readstr + read_strlen);
+
+		// TODO: zjistit jestli tohle je spravne
 		transitions[i].transout = *(transoutstr + transout_strlen) - 'a' + 1;
 
 		last_transition += len;
 	}
 
-	return count;
+	return OK;
 }

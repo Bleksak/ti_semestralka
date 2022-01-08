@@ -3,23 +3,26 @@
 
 #include "automaton.h"
 
-const char* automaton_type_string[] = {
-	"",
-	"mealy",
-	"moore"};
+Automaton* automaton_dk_new(AutomatonType type, size_t state_count, size_t in_count, size_t out_count, size_t transition_count, Transition* transitions, char initial_state) {
+	Automaton* a = calloc(1, sizeof(Automaton));
 
-AutomatonType automaton_get_type(const char* str) {
-	for (size_t i = 1; i < sizeof(automaton_type_string) / sizeof(automaton_type_string[0]); ++i) {
-		if (strncmp(str, automaton_type_string[i], strlen(automaton_type_string[i])) == 0) {
-			return i;
-		}
+	if (!a) {
+		return NULL;
 	}
 
-	return TYPE_NONE;
+	a->type = type;
+	a->state_count = state_count;
+	a->in_count = in_count;
+	a->out_count = out_count;
+	a->transition_count = transition_count;
+	a->transitions = transitions;
+	a->initial_state = initial_state;
+
+	return a;
 }
 
-Automaton* automaton(AutomatonType type, OutputFileType fstype, size_t state_count, size_t in_count, size_t out_count, size_t transition_count, Transition* transitions, char initial_state, char* in, char* out) {
-	Automaton* a = calloc(1, sizeof(Automaton));
+Automaton* automaton_new(AutomatonType type, size_t state_count, size_t in_count, size_t out_count, size_t transition_count, Transition* transitions, char initial_state, char* in, char* out) {
+	Automaton* a = automaton_dk_new(type, state_count, in_count, out_count, transition_count, transitions, initial_state);
 	if (!a) {
 		return NULL;
 	}
@@ -39,17 +42,28 @@ Automaton* automaton(AutomatonType type, OutputFileType fstype, size_t state_cou
 		return NULL;
 	}
 
-    a->type = type;
-	a->state_count = state_count;
-	a->in_count = in_count;
-	a->out_count = out_count;
-	a->transition_count = transition_count;
-	a->transitions = transitions;
-	a->initial_state = initial_state;
-	a->fstype = fstype;
-
 	memcpy(a->in, in, 256 * sizeof(char));
 	memcpy(a->out, out, 256 * sizeof(char));
 
 	return a;
+}
+
+void automaton_free(Automaton* automaton) {
+	if(!automaton) {
+		return;
+	}
+
+	if(automaton->transitions) {
+		free(automaton->transitions);
+	}
+
+	if(automaton->in) {
+		free(automaton->in);
+	}
+
+	if(automaton->out) {
+		free(automaton->out);
+	}
+
+	free(automaton);
 }

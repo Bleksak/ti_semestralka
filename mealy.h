@@ -2,4 +2,4 @@
 
 #include "automaton.h"
 
-Automaton* parse_mealy(char* str);
+ErrorCode parse_mealy(char* str, Automaton** automaton);

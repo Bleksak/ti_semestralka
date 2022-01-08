@@ -5,11 +5,18 @@
 #include "filewriter.h"
 
 int main(int argc, const char** argv) {
-    const char* input = "data/mealy.dkame";
+    const char* input = "data/empty.txt";
+    Automaton* automaton;
 
-    Automaton* automaton = parse(input);
+    ErrorCode code = parse(input, &automaton);
 
-    // write(automaton, "out.f");
+    if(code) {
+        return code;
+    }
+
+    write(automaton, "test.jff");
+
+    automaton_free(automaton);
 
     return 0;
 }
