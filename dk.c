@@ -107,8 +107,7 @@ ErrorCode parse_dkame(char* str, Automaton** automaton) {
 				return BAD_FILE;
 			}
 
-			// TODO: funguje jen pro 1ciferne cisla
-			transitions[from_index * out_count + j].transout = *split;
+			transitions[from_index * out_count + j].transout = strtoul(split, &end, 10);
 		}
 	}
 
@@ -171,8 +170,7 @@ ErrorCode parse_dkamo(char* str, Automaton** automaton) {
 				return BAD_FILE;
 			}
 
-			// TODO: tohle funguje jen pro jednociferne cisla
-			transitions[i * in_count + j].transout = *line;
+			transitions[i * in_count + j].transout = strtoul(line, &end, 10);
 		}
 
 		line = strtok(NULL, " ");

@@ -7,12 +7,7 @@
 
 #include "string_table.h"
 
-static void autoclose(FILE** fp) {
-	if (*fp) {
-		fclose(*fp);
-	}
-}
-
+// spolecna cast pro automaty DKAME a DKAMO
 static ErrorCode write_dkam(Automaton* automaton, FILE* fp) {
 	fprintf(fp, "%zu\n%zu\n", automaton->state_count, automaton->in_count);
 
@@ -43,6 +38,7 @@ static ErrorCode write_dkam(Automaton* automaton, FILE* fp) {
 	return OK;
 }
 
+// zapise automat do souboru typu DKAME
 static ErrorCode write_mealy_dkame(Automaton* automaton, FILE* fp) {
 	fprintf(fp, "DKAME\n");
 
@@ -71,12 +67,13 @@ static ErrorCode write_mealy_dkame(Automaton* automaton, FILE* fp) {
 	return OK;
 }
 
+// zapise automat do souboru typu DKAMO
 static ErrorCode write_moore_dkamo(Automaton* automaton, FILE* fp) {
 	fprintf(fp, "DKAMO\n");
 	write_dkam(automaton, fp);
 
 	for (size_t i = 0; i < automaton->out_count; ++i) {
-		fprintf(fp, "%c ", automaton->out[i + 'A']);
+		fprintf(fp, "%d ", automaton->out[i + 'A']);
 	}
 
 	fprintf(fp, "\n");
@@ -84,6 +81,7 @@ static ErrorCode write_moore_dkamo(Automaton* automaton, FILE* fp) {
 	return OK;
 }
 
+// zapise automat do XML souboru, se kterym dokaze pracovat JFLAP
 static ErrorCode write_xml(Automaton* automaton, FILE* fp) {
 	fprintf(fp, "%s\n<structure>\n", STRING_TABLE[XML_HEADER]);
 
@@ -106,7 +104,7 @@ static ErrorCode write_xml(Automaton* automaton, FILE* fp) {
 				}
 			}
 
-			fprintf(fp, "\n\t\t\t<output>%c</output>", out);
+			fprintf(fp, "\n\t\t\t<output>%d</output>", out);
 		}
 
 		fprintf(fp, "\n\t\t</state>\n");
@@ -118,7 +116,7 @@ static ErrorCode write_xml(Automaton* automaton, FILE* fp) {
 		fprintf(fp, "\t\t\t<from>%c</from>\n", automaton->transitions[i].from - 'A' + '0');
 		fprintf(fp, "\t\t\t<to>%c</to>\n", automaton->transitions[i].to - 'A' + '0');
 		fprintf(fp, "\t\t\t<read>%c</read>\n", automaton->transitions[i].read);
-		fprintf(fp, "\t\t\t<transout>%c</transout>\n", automaton->transitions[i].transout);
+		fprintf(fp, "\t\t\t<transout>%d</transout>\n", automaton->transitions[i].transout);
 
 		fprintf(fp, "\t\t</transition>\n");
 	}
@@ -129,17 +127,23 @@ static ErrorCode write_xml(Automaton* automaton, FILE* fp) {
 	return OK;
 }
 
+// zapise automat do souboru
 ErrorCode write(Automaton* automaton, const char* file) {
-	__attribute__((cleanup(autoclose))) FILE* fp = fopen(file, "w");
+	FILE* fp = fopen(file, "w");
 
 	if (!fp) {
 		return BAD_FILE;
 	}
 
+	ErrorCode code;
+
 	switch (automaton->type) {
-		case TYPE_MEALY: return write_mealy_dkame(automaton, fp);
-		case TYPE_MOORE: return write_moore_dkamo(automaton, fp);
+		case TYPE_MEALY: code = write_mealy_dkame(automaton, fp); break;
+		case TYPE_MOORE: code = write_moore_dkamo(automaton, fp); break;
+		case TYPE_DKAME:
+		case TYPE_DKAMO: code = write_xml(automaton, fp);
 	}
 
-	return write_xml(automaton, fp);
+	fclose(fp);
+	return code;
 }

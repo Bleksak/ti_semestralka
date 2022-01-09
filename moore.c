@@ -22,8 +22,7 @@ static size_t get_out_characters(char* str, char ascii[]) {
 
 				if (!ascii[id]) {
 					count += 1;
-					// TODO: tohle funguje jen pro jednociferny cisla
-					ascii[id] = (char) count + '0';
+					ascii[id] = (char) count;
 				}
 
 				break;
