@@ -3,6 +3,7 @@
 #include "moore.h"
 #include "string_table.h"
 
+// Naplni pole vystupnimi znaky
 static size_t get_out_characters(char* str, char ascii[]) {
 	// TODO: mozna potrebujem hashset namisto ascii tabulky
 	size_t count = 0;

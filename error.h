@@ -5,3 +5,5 @@ typedef enum ErrorCode {
     ERR_OUT_OF_MEMORY,
     BAD_FILE,
 } ErrorCode;
+
+void print_error_message(ErrorCode code);

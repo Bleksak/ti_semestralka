@@ -3,6 +3,7 @@
 
 #include "automaton.h"
 
+// Vytvori novy automat typu DKAM (bez in/out pole, protoze vstupni a vystupni symboly jsou ocislovany a, b, c..., 1, 2, 3...)
 Automaton* automaton_dk_new(AutomatonType type, size_t state_count, size_t in_count, size_t out_count, size_t transition_count, Transition* transitions, char initial_state) {
 	Automaton* a = calloc(1, sizeof(Automaton));
 
@@ -21,6 +22,7 @@ Automaton* automaton_dk_new(AutomatonType type, size_t state_count, size_t in_co
 	return a;
 }
 
+// Vytvori novy(plnohodnotny) automat
 Automaton* automaton_new(AutomatonType type, size_t state_count, size_t in_count, size_t out_count, size_t transition_count, Transition* transitions, char initial_state, char* in, char* out) {
 	Automaton* a = automaton_dk_new(type, state_count, in_count, out_count, transition_count, transitions, initial_state);
 	if (!a) {
