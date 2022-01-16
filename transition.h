@@ -1,6 +1,6 @@
 #pragma once
 
-// popisuje prechod mezi dvemi stavy automatu
+// popisuje prechod mezi dvema stavy automatu
 typedef struct Transition {
     char from; // z jakeho stavu
     char to; // do ktereho stavu

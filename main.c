@@ -1,30 +1,32 @@
 #include <stdio.h>
 
 #include "automaton.h"
-#include "parser.h"
 #include "filewriter.h"
+#include "parser.h"
 
+// vstupni funkce programu
+// program precte soubor zadany jako prvni argument a pokusi se ho transforomvat do jineho souboru (ruzneho typu) zadaneho jako druhy argument
 int main(int argc, const char** argv) {
-    const char* input = "data/moore.jff";
-    
-    const char* in = argv[1];
-    const char* out = argv[2];
+	const char* input = "data/moore.jff";
 
-    Automaton* automaton;
+	const char* in = argv[1];
+	const char* out = argv[2];
 
-    ErrorCode code = parse(input, &automaton);
+	Automaton* automaton;
 
-    if(code) {
-        return code;
-    }
+	ErrorCode code = parse(input, &automaton);
 
-    code = write(automaton, "test.jff");
+	if (code) {
+		return code;
+	}
 
-    if(code) {
-        return code;
-    }
+	code = write(automaton, "test.jff");
 
-    automaton_free(automaton);
+	if (code) {
+		return code;
+	}
 
-    return 0;
+	automaton_free(automaton);
+
+	return OK;
 }

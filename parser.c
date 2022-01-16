@@ -27,7 +27,7 @@ static const parser parsers[] = {
 	parse_dkamo,
 };
 
-// precte cely soubor do jednoho retezce
+// precte cely soubor do jednoho retezce a z kazdeho radku umaze zleva vsechny bile znaky
 static ErrorCode readfile(FILE* fp, char** str) {
 	fseek(fp, 0, SEEK_END);
 	long file_len = ftell(fp);
@@ -177,7 +177,7 @@ size_t get_in_characters(char* str, char ascii[]) {
 	return count;
 }
 
-// najde a vrati vychozi stav automatu, pokud zadny nenajde, vychozi stav je 'A'
+// najde a vrati vychozi stav automatu, pokud zadny nenajde, vychozi stav je implicitne 'A'
 char get_initial_state(char* str) {
 	size_t len = strlen(STRING_TABLE[XML_STATE]);
 	// hledame <initial/>

@@ -51,14 +51,15 @@ static ErrorCode getlines(char* str, size_t* count, char*** lines) {
     return OK;
 }
 
-#define LINE_STATE_COUNT 1
-#define LINE_IN_COUNT 2
-#define LINE_IN 3
-#define LINE_INITIAL_STATE 3
-#define LINE_OUT_COUNT 4
-#define LINE_OUT 5
+// radky, na kterych se nachazi jednotlive udaje
+#define LINE_STATE_COUNT 1 // pocet stavu
+#define LINE_IN_COUNT 2 // pocet vstupnich symbolu
+#define LINE_IN 3 // prechodova funkce
+#define LINE_INITIAL_STATE 3 // pocatecni stav automatu
+#define LINE_OUT_COUNT 4 // pocet vystupnich symbolu
+#define LINE_OUT 5 // vystupni funkce
 
-// precte string a zjisti z nej informace o mealyho automatu
+// precte string a vytvori z nej mealyho automat
 // predpoklad - vstupni string neobsahuje komentare na zacatku radky
 // predpoklad - vstupni string neobsahuje prazdne radky
 ErrorCode parse_dkame(char* str, Automaton** automaton) {
@@ -145,7 +146,7 @@ ErrorCode parse_dkame(char* str, Automaton** automaton) {
     return OK;
 }
 
-// precte string a zjisti z nej informace o mooreho automatu
+// precte string a vytvori z nej mooreho automat
 // predpoklad - vstupni string neobsahuje komentare na zacatku radky
 // predpoklad - vstupni string neobsahuje prazdne radky
 ErrorCode parse_dkamo(char* str, Automaton** automaton) {

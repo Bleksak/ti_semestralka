@@ -7,7 +7,7 @@
 
 #include "string_table.h"
 
-// spolecna cast pro automaty DKAME a DKAMO
+// spolecna zapisova cast pro automaty DKAME a DKAMO
 static ErrorCode write_dkam(Automaton* automaton, FILE* fp) {
 	fprintf(fp, "%zu\n%zu\n", automaton->state_count, automaton->in_count);
 

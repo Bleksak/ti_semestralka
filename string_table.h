@@ -1,7 +1,9 @@
 #pragma once
 
+// tabulka stringu pro vyhledavani v XML souboru
 extern const char* STRING_TABLE[];
 
+// enum pro indexaci v tabulce stringu
 enum STR_TABLE {
 	XML_HEADER = 0,
 	XML_TYPE,

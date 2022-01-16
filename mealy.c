@@ -8,6 +8,7 @@
 #include "transition.h"
 #include "string_table.h"
 
+// naplni pole vystupnimi znaky a vrati jejich pocet
 static size_t get_out_characters(char* str, char ascii[]) {
     // TODO: mozna potrebujem hashset namisto ascii tabulky
     size_t count = 0;
@@ -24,6 +25,7 @@ static size_t get_out_characters(char* str, char ascii[]) {
     return count;
 }
 
+// nacte z XML stringu mealyho automat
 ErrorCode parse_mealy(char* str, Automaton** automaton) {
     char in[256] = {0};
     char out[256] = {0};
