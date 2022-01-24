@@ -1,5 +1,5 @@
-CC = clang
-CFLAGS = -Wall -Wextra -pedantic -std=c11 -D _CRT_SECURE_NO_WARNINGS=1 -g
+CC = gcc
+CFLAGS = -Wall -Wextra -pedantic -std=c11
 BIN = main.exe
 OBJ = main.c parser.c automaton.c mealy.c moore.c filewriter.c dk.c string_table.c error.c
 

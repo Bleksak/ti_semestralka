@@ -20,7 +20,7 @@ size_t get_transition_count(char* str);
 
 
 // naplni prechodovou tabulku (z ktereho stavu, do ktereho stavu, pres ktery symbol, ktery symbol se vypise)
-ErrorCode get_transitions(char* str, size_t* count, Transition** _transitions);
+ErrorCode get_transitions(char* str, size_t* count, Transition** _transitions, char* in, char* out);
 
 // najde a vrati vychozi stav automatu, pokud zadny nenajde, vychozi stav je implicitne 'A'
 char get_initial_state(char* str);

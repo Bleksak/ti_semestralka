@@ -216,7 +216,7 @@ size_t get_transition_count(char* str) {
 }
 
 // naplni prechodovou tabulku (z ktereho stavu, do ktereho stavu, pres ktery symbol, ktery symbol se vypise)
-ErrorCode get_transitions(char* str, size_t* count, Transition** _transitions) {
+ErrorCode get_transitions(char* str, size_t* count, Transition** _transitions, char* in, char* out) {
 	*count = get_transition_count(str);
 
 	if(*count == 0) {
@@ -264,12 +264,13 @@ ErrorCode get_transitions(char* str, size_t* count, Transition** _transitions) {
 
 		transitions[i].from = (char)strtoul(fromstr + from_strlen, &dummy, 10);
 		transitions[i].to = (char)strtoul(tostr + to_strlen, &dummy, 10);
-		transitions[i].read = *(readstr + read_strlen);
+		transitions[i].read = in[ (size_t) *(readstr + read_strlen)];
 
 		// TODO: zjistit jestli tohle je spravne
 		// FIXME: tady asi musime pouzit out[] pole
 		// transout je vzdy 1 znak.. mozna staci to co mame
-		transitions[i].transout = *(transoutstr + transout_strlen) - 'a' + 1;
+		// transitions[i].transout = *(transoutstr + transout_strlen) - 'a' + 1;
+		transitions[i].transout = out[ (size_t) *(transoutstr + transout_strlen)];
 
 		last_transition += len;
 	}

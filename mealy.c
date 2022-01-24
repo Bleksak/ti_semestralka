@@ -10,7 +10,7 @@
 
 // naplni pole vystupnimi znaky a vrati jejich pocet
 static size_t get_out_characters(char* str, char ascii[]) {
-    // TODO: mozna potrebujem hashset namisto ascii tabulky
+    // TODO: mozna potrebujem hashmapu namisto ascii tabulky
     size_t count = 0;
     size_t len = strlen(STRING_TABLE[XML_TRANSOUT]);
 
@@ -38,7 +38,7 @@ ErrorCode parse_mealy(char* str, Automaton** automaton) {
     Transition* transitions;
     size_t transition_count;
 
-    ErrorCode code = get_transitions(str, &transition_count, &transitions);
+    ErrorCode code = get_transitions(str, &transition_count, &transitions, in, out);
 
     if(code) {
         return code;

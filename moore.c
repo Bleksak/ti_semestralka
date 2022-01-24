@@ -49,7 +49,7 @@ ErrorCode parse_moore(char* str, Automaton** automaton) {
 	Transition* transitions;
 	size_t transition_count;
 
-	ErrorCode code = get_transitions(str, &transition_count, &transitions);
+	ErrorCode code = get_transitions(str, &transition_count, &transitions, in, out);
 
 	if(code) {
 		return code;
