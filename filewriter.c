@@ -111,6 +111,10 @@ static ErrorCode write_xml(Automaton* automaton, FILE* fp) {
 	}
 
 	for(size_t i = 0; i < automaton->transition_count; ++i) {
+		if(!automaton->transitions[i].filled) {
+			continue;
+		}
+
 		fprintf(fp, "\t\t<transition>\n");
 
 		fprintf(fp, "\t\t\t<from>%c</from>\n", automaton->transitions[i].from - 'A' + '0');

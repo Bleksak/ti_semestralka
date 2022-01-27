@@ -7,218 +7,222 @@
 // spocita kolik radek je ve stringu (pocet znaku \n + 1) (+1 kvuli poslednimu
 // radku)
 static size_t line_count(char* str) {
-    size_t count = 1;
+	size_t count = 1;
 
-    do {
-        if (*str == '\n') {
-            count += 1;
-        }
-    } while (*str++);
+	do {
+		if (*str == '\n') {
+			count += 1;
+		}
+	} while (*str++);
 
-    return count;
+	return count;
 }
 
 // rozdeli string podle radek a vrati pole stringu obsahujici jednotlive radky
 static ErrorCode getlines(char* str, size_t* count, char*** lines) {
-    *count = line_count(str);
+	*count = line_count(str);
 
-    *lines = calloc(*count, sizeof(*lines));
+	*lines = calloc(*count, sizeof(*lines));
 
-    if (!*lines) {
-        return ERR_OUT_OF_MEMORY;
-    }
+	if (!*lines) {
+		return ERR_OUT_OF_MEMORY;
+	}
 
-    size_t i = 0;
+	size_t i = 0;
 
-    char* start = str;
+	char* start = str;
 
-    bool replaced;
+	bool replaced;
 
-    do {
-        replaced = false;
+	do {
+		replaced = false;
 
-        if (*str == '\n') {
-            (*lines)[i] = start;
-            start = str + 1;
-            i += 1;
-            *str = 0;
-            replaced = true;
-        }
-    } while (*str++ || replaced);
+		if (*str == '\n') {
+			(*lines)[i] = start;
+			start = str + 1;
+			i += 1;
+			*str = 0;
+			replaced = true;
+		}
+	} while (*str++ || replaced);
 
-    (*lines)[*count - 1] = start;
+	(*lines)[*count - 1] = start;
 
-    return OK;
+	return OK;
 }
 
 // radky, na kterych se nachazi jednotlive udaje
-#define LINE_STATE_COUNT 1 // pocet stavu
-#define LINE_IN_COUNT 2 // pocet vstupnich symbolu
-#define LINE_IN 3 // prechodova funkce
-#define LINE_INITIAL_STATE 3 // pocatecni stav automatu
-#define LINE_OUT_COUNT 4 // pocet vystupnich symbolu
-#define LINE_OUT 5 // vystupni funkce
+#define LINE_STATE_COUNT 1	  // pocet stavu
+#define LINE_IN_COUNT 2		  // pocet vstupnich symbolu
+#define LINE_IN 3			  // prechodova funkce
+#define LINE_INITIAL_STATE 3  // pocatecni stav automatu
+#define LINE_OUT_COUNT 4	  // pocet vystupnich symbolu
+#define LINE_OUT 5			  // vystupni funkce
 
 // precte string a vytvori z nej mealyho automat
 // predpoklad - vstupni string neobsahuje komentare na zacatku radky
 // predpoklad - vstupni string neobsahuje prazdne radky
 ErrorCode parse_dkame(char* str, Automaton** automaton) {
-    char** lines;
-    size_t line_count;
-    ErrorCode code = getlines(str, &line_count, &lines);
+	char** lines;
+	size_t line_count;
+	ErrorCode code = getlines(str, &line_count, &lines);
 
-    if (code) {
-        return code;
-    }
+	if (code) {
+		return code;
+	}
 
-    char* end;
+	char* end;
 
-    // pocet stavu, pocet vstupnich symbolu
-    size_t state_count = strtoull(lines[LINE_STATE_COUNT], &end, 10);
-    size_t in_count = strtoull(lines[LINE_IN_COUNT], &end, 10);
+	// pocet stavu, pocet vstupnich symbolu
+	size_t state_count = strtoull(lines[LINE_STATE_COUNT], &end, 10);
+	size_t in_count = strtoull(lines[LINE_IN_COUNT], &end, 10);
 
-    // pocet prechodu = pocet stavu * pocet vstupnich symbolu
-    // zduvodneni - DKAME format nedokaze popsat prechod, ktery neexistuje (dalo
-    // by se vyresit neplatnym symbolem) tedy DKAME popisuje automat, ktereho
-    // prechodovy graf je kompletni graf
-    Transition* transitions =
-        calloc(state_count * in_count, sizeof(Transition));
+	// pocet prechodu = pocet stavu * pocet vstupnich symbolu
+	// zduvodneni - DKAME format nedokaze popsat prechod, ktery neexistuje (dalo
+	// by se vyresit neplatnym symbolem) tedy DKAME popisuje automat, ktereho
+	// prechodovy graf je kompletni graf
+	Transition* transitions =
+		calloc(state_count * in_count, sizeof(Transition));
 
-    for (size_t i = 0; i < state_count; ++i) {
-        char* line = lines[i + LINE_IN];
-        char* split = strtok(line, " ");
+	for (size_t i = 0; i < state_count; ++i) {
+		char* line = lines[i + LINE_IN];
+		char* split = strtok(line, " ");
 
-        char from = line[0];
-        // stavy jsou implicitne A, B, C, D..., muzeme tedy pouzit "stav - 'A'"
-        // k indexaci pole se stavy (nebo prechody)
-        size_t from_index = (size_t)(from - 'A');
+		char from = *line;
+		// stavy jsou implicitne A, B, C, D..., muzeme tedy pouzit "stav - 'A'"
+		// k indexaci pole se stavy (nebo prechody)
+		size_t from_index = (size_t)(from - 'A');
 
-        for (size_t j = 0; j < in_count; ++j) {
-            split = strtok(NULL, " ");
+		for (size_t j = 0; j < in_count; ++j) {
+			split = strtok(NULL, " ");
 
-            if (!split) {
-                free(transitions);
-                free(lines);
-                return BAD_FILE;
-            }
-            char to = *split;
+			if (!split) {
+				free(transitions);
+				free(lines);
+				return BAD_FILE;
+			}
 
-            transitions[from_index * in_count + j].from = from;
-            transitions[from_index * in_count + j].to = to;
-            transitions[from_index * in_count + j].read = (char)j + 'a';
-        }
-    }
+			char to = *split;
 
-    // pocatecni symbol
-    char initial_state = *lines[state_count + LINE_INITIAL_STATE];
+			transitions[from_index * in_count + j].from = from;
+			transitions[from_index * in_count + j].to = to;
+			transitions[from_index * in_count + j].read = (char)j + 'a';
+			transitions[from_index * in_count + j].filled = true;
+		}
+	}
 
-    // pocet vystupnich symbolu
-    size_t out_count = strtoull(lines[state_count + LINE_OUT_COUNT], &end, 10);
 
-    // pocet vstupnich symbolu = pocet vysupnich symbolu (kvuli tomu, ze DKAME
-    // popisuje kompletni graf)
-    for (size_t i = 0; i < state_count; ++i) {
-        char* line = lines[state_count + LINE_OUT + i];
-        char* split = strtok(line, " ");
-        char from = line[0];
-        size_t from_index = (size_t)(from - 'A');
+	// pocatecni symbol
+	char initial_state = *lines[state_count + LINE_INITIAL_STATE];
 
-        for (size_t j = 0; j < out_count; ++j) {
-            split = strtok(NULL, " ");
+	// pocet vystupnich symbolu
+	size_t out_count = strtoull(lines[state_count + LINE_OUT_COUNT], &end, 10);
 
-            if (!split) {
-                free(transitions);
-                free(lines);
-                return BAD_FILE;
-            }
+	for (size_t i = 0; i < state_count; ++i) {
+		char* line = lines[state_count + LINE_OUT + i];
+		char* split = strtok(line, " ");
+		char from = *line;
+		size_t from_index = (size_t)(from - 'A');
 
-            transitions[from_index * out_count + j].transout =
-                strtoul(split, &end, 10);
-        }
-    }
+		for (size_t j = 0; j < in_count; ++j) {
+			split = strtok(NULL, " ");
 
-    free(lines);
+			if (!split) {
+				free(transitions);
+				free(lines);
+				return BAD_FILE;
+			}
 
-    *automaton =
-        automaton_dk_new(TYPE_DKAME, state_count, in_count, out_count,
-                         state_count * in_count, transitions, initial_state);
+			transitions[from_index * in_count + j].transout =
+				strtoul(split, &end, 10);
+		}
+	}
 
-    return OK;
+	free(lines);
+
+	*automaton =
+		automaton_dk_new(TYPE_DKAME, state_count, in_count, out_count,
+						 state_count * in_count, transitions, initial_state);
+
+	return OK;
 }
 
 // precte string a vytvori z nej mooreho automat
 // predpoklad - vstupni string neobsahuje komentare na zacatku radky
 // predpoklad - vstupni string neobsahuje prazdne radky
 ErrorCode parse_dkamo(char* str, Automaton** automaton) {
-    char** lines;
-    size_t line_count;
+	char** lines;
+	size_t line_count;
 
-    ErrorCode code = getlines(str, &line_count, &lines);
+	ErrorCode code = getlines(str, &line_count, &lines);
 
-    if (code) {
-        return code;
-    }
+	if (code) {
+		return code;
+	}
 
-    char* end;
-    size_t state_count = strtoull(lines[LINE_STATE_COUNT], &end, 10);
-    size_t in_count = strtoull(lines[LINE_IN_COUNT], &end, 10);
+	char* end;
+	size_t state_count = strtoull(lines[LINE_STATE_COUNT], &end, 10);
+	size_t in_count = strtoull(lines[LINE_IN_COUNT], &end, 10);
 
-    Transition* transitions =
-        calloc(state_count * in_count, sizeof(Transition));
+	Transition* transitions =
+		calloc(state_count * in_count, sizeof(Transition));
 
-    if (!transitions) {
-        free(lines);
-        return ERR_OUT_OF_MEMORY;
-    }
+	if (!transitions) {
+		free(lines);
+		return ERR_OUT_OF_MEMORY;
+	}
 
-    for (size_t i = 0; i < state_count; ++i) {
-        char* line = lines[i + LINE_IN];
-        char* split = strtok(line, " ");
+	for (size_t i = 0; i < state_count; ++i) {
+		char* line = lines[i + LINE_IN];
+		char* split = strtok(line, " ");
 
-        char from = line[0];
-        size_t from_index = (size_t)(from - 'A');
+		char from = *line;
+		// size_t from_index = (size_t)(from - 'A');
 
-        for (size_t j = 0; j < in_count; ++j) {
-            split = strtok(NULL, " ");
+		for (size_t j = 0; j < in_count; ++j) {
+			split = strtok(NULL, " ");
 
-            if (!split) {
-                free(transitions);
-                free(lines);
-                return BAD_FILE;
-            }
+			if (!split) {
+				free(transitions);
+				free(lines);
+				return BAD_FILE;
+			}
 
-            char to = *split;
+			char to = *split;
 
-            transitions[from_index * in_count + j].from = from;
-            transitions[from_index * in_count + j].to = to;
-            transitions[from_index * in_count + j].read = (char)j + 'a';
-        }
-    }
+			size_t to_index = (size_t)(to - 'A');
 
-    char initial_state = *lines[state_count + LINE_INITIAL_STATE];
-    size_t out_count = strtoull(lines[state_count + LINE_OUT_COUNT], &end, 10);
+			transitions[to_index * in_count + j].from = from;
+			transitions[to_index * in_count + j].to = to;
+			transitions[to_index * in_count + j].read = (char)j + 'a';
+			transitions[to_index * in_count + j].filled = true;
+		}
+	}
 
-    char* line = strtok(lines[state_count + LINE_OUT], " ");
+	char initial_state = *lines[state_count + LINE_INITIAL_STATE];
+	size_t out_count = strtoull(lines[state_count + LINE_OUT_COUNT], &end, 10);
 
-    for (size_t i = 0; i < state_count; ++i) {
-        for (size_t j = 0; j < in_count; ++j) {
-            if (!line) {
-                free(transitions);
-                free(lines);
-                return BAD_FILE;
-            }
+	char* line = strtok(lines[state_count + LINE_OUT], " ");
 
-            transitions[i * in_count + j].transout = strtoul(line, &end, 10);
-        }
+	for (size_t i = 0; i < state_count; ++i) {
+		for (size_t j = 0; j < in_count; ++j) {
+			if (!line) {
+				free(transitions);
+				free(lines);
+				return BAD_FILE;
+			}
 
-        line = strtok(NULL, " ");
-    }
+			transitions[i * in_count + j].transout = strtoul(line, &end, 10);
+		}
 
-    free(lines);
+		line = strtok(NULL, " ");
+	}
 
-    *automaton =
-        automaton_dk_new(TYPE_DKAMO, state_count, in_count, out_count,
-                         state_count * in_count, transitions, initial_state);
+	free(lines);
 
-    return OK;
+	*automaton =
+		automaton_dk_new(TYPE_DKAMO, state_count, in_count, out_count,
+						 state_count * in_count, transitions, initial_state);
+
+	return OK;
 }
