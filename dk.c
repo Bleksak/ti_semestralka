@@ -107,7 +107,6 @@ ErrorCode parse_dkame(char* str, Automaton** automaton) {
 			transitions[from_index * in_count + j].from = from;
 			transitions[from_index * in_count + j].to = to;
 			transitions[from_index * in_count + j].read = (char)j + 'a';
-			transitions[from_index * in_count + j].filled = true;
 		}
 	}
 
@@ -177,7 +176,7 @@ ErrorCode parse_dkamo(char* str, Automaton** automaton) {
 		char* split = strtok(line, " ");
 
 		char from = *line;
-		// size_t from_index = (size_t)(from - 'A');
+		size_t from_index = (size_t)(from - 'A');
 
 		for (size_t j = 0; j < in_count; ++j) {
 			split = strtok(NULL, " ");
@@ -190,12 +189,11 @@ ErrorCode parse_dkamo(char* str, Automaton** automaton) {
 
 			char to = *split;
 
-			size_t to_index = (size_t)(to - 'A');
+			// size_t to_index = (size_t)(to - 'A');
 
-			transitions[to_index * in_count + j].from = from;
-			transitions[to_index * in_count + j].to = to;
-			transitions[to_index * in_count + j].read = (char)j + 'a';
-			transitions[to_index * in_count + j].filled = true;
+			transitions[from_index * in_count + j].from = from;
+			transitions[from_index * in_count + j].to = to;
+			transitions[from_index * in_count + j].read = (char)j + 'a';
 		}
 	}
 
@@ -212,7 +210,11 @@ ErrorCode parse_dkamo(char* str, Automaton** automaton) {
 				return BAD_FILE;
 			}
 
-			transitions[i * in_count + j].transout = strtoul(line, &end, 10);
+			for(size_t k = 0; k < state_count * in_count; ++k) {
+				if(transitions[k].to == (char) (j + 'A')) {
+					transitions[i * in_count + j].transout = strtoul(line, &end, 10);
+				}
+			}
 		}
 
 		line = strtok(NULL, " ");

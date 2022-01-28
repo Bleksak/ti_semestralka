@@ -7,10 +7,10 @@
 #include "mealy.h"
 #include "transition.h"
 #include "string_table.h"
+#include <ctype.h>
 
 // naplni pole vystupnimi znaky a vrati jejich pocet
 static size_t get_out_characters(char* str, char ascii[]) {
-    // TODO: mozna potrebujem hashmapu namisto ascii tabulky
     size_t count = 0;
     size_t len = strlen(STRING_TABLE[XML_TRANSOUT]);
 
@@ -18,7 +18,7 @@ static size_t get_out_characters(char* str, char ascii[]) {
         str += len;
         if(!ascii[(size_t) *str]) {
             count += 1;
-            ascii[(size_t) *str] = (char) count;
+            ascii[(size_t) *str] = (isdigit(*str)) ? *str - '0' : (char) count;
         }
     }
 

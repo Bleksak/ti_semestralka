@@ -159,7 +159,6 @@ size_t get_state_count(char* str) {
 // vrati jejich pocet
 // tabulka urcuje na ktery znak se zobrazi znak v <read> tagu
 size_t get_in_characters(char* str, char ascii[]) {
-	// TODO: mozna potrebujem hashset namisto ascii tabulky
 	size_t count = 0;
 	size_t len = strlen(STRING_TABLE[XML_READ]);
 
@@ -169,7 +168,7 @@ size_t get_in_characters(char* str, char ascii[]) {
 	while ((str = strstr(str, STRING_TABLE[XML_READ]))) {
 		str += len;
 		if (!ascii[(size_t)*str]) {
-			ascii[(size_t)*str] = (char)count + 'a';
+			ascii[(size_t)*str] = (isdigit(*str)) ? (char)count + 'a' : *str;
 			count += 1;
 		}
 	}

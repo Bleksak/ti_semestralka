@@ -7,5 +7,4 @@ typedef struct Transition {
     char to; // do ktereho stavu
     char read; // jakym znakem
     char transout; // vystupni symbol prechodu
-    bool filled; // zda je prechod platny
 } Transition;

@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "moore.h"
 #include "string_table.h"
 
 // naplni pole vystupnimi znaky a vrati jejich pocet
 static size_t get_out_characters(char* str, char ascii[]) {
-	// TODO: mozna potrebujem hashset namisto ascii tabulky
 	size_t count = 0;
 	size_t len = strlen(STRING_TABLE[XML_OUTPUT]);
 
@@ -23,7 +23,7 @@ static size_t get_out_characters(char* str, char ascii[]) {
 
 				if (!ascii[id]) {
 					count += 1;
-					ascii[id] = (char) count;
+					ascii[id] = (isdigit(*str)) ? *str - '0' : (char) count;
 				}
 
 				break;
