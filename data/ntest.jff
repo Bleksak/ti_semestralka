@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<structure>
+	<type>moore</type>
+	<automaton>
+		<state id="0" name="A">
+			<initial/>
+			<output>1</output>
+		</state>
+		<state id="1" name="B">
+			<output>2</output>
+		</state>
+		<state id="2" name="C">
+			<output>3</output>
+		</state>
+		<state id="3" name="D">
+			<output>4</output>
+		</state>
+		<transition>
+			<from>0</from>
+			<to>0</to>
+			<read>a</read>
+			<transout>1</transout>
+		</transition>
+		<transition>
+			<from>3</from>
+			<to>0</to>
+			<read>b</read>
+			<transout>1</transout>
+		</transition>
+		<transition>
+			<from>3</from>
+			<to>0</to>
+			<read>c</read>
+			<transout>1</transout>
+		</transition>
+		<transition>
+			<from>1</from>
+			<to>1</to>
+			<read>a</read>
+			<transout>2</transout>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>1</to>
+			<read>b</read>
+			<transout>2</transout>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>2</to>
+			<read>a</read>
+			<transout>3</transout>
+		</transition>
+		<transition>
+			<from>1</from>
+			<to>2</to>
+			<read>b</read>
+			<transout>3</transout>
+		</transition>
+		<transition>
+			<from>3</from>
+			<to>3</to>
+			<read>a</read>
+			<transout>4</transout>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>3</to>
+			<read>b</read>
+			<transout>4</transout>
+		</transition>
+	</automaton>
+</structure>

@@ -110,7 +110,6 @@ ErrorCode parse_dkame(char* str, Automaton** automaton) {
 		}
 	}
 
-
 	// pocatecni symbol
 	char initial_state = *lines[state_count + LINE_INITIAL_STATE];
 
@@ -200,20 +199,22 @@ ErrorCode parse_dkamo(char* str, Automaton** automaton) {
 	char initial_state = *lines[state_count + LINE_INITIAL_STATE];
 	size_t out_count = strtoull(lines[state_count + LINE_OUT_COUNT], &end, 10);
 
+	// puts(lines[state_count + LINE_OUT]);
+
 	char* line = strtok(lines[state_count + LINE_OUT], " ");
 
 	for (size_t i = 0; i < state_count; ++i) {
-		for (size_t j = 0; j < in_count; ++j) {
-			if (!line) {
-				free(transitions);
-				free(lines);
-				return BAD_FILE;
-			}
+		if (!line) {
+			free(transitions);
+			free(lines);
+			return BAD_FILE;
+		}
 
-			for(size_t k = 0; k < state_count * in_count; ++k) {
-				if(transitions[k].to == (char) (j + 'A')) {
-					transitions[i * in_count + j].transout = strtoul(line, &end, 10);
-				}
+		char out = strtoul(line, &end, 10);
+
+		for (size_t k = 0; k < state_count * in_count; ++k) {
+			if (transitions[k].to == (char)(i + 'A')) {
+				transitions[k].transout = out;
 			}
 		}
 
